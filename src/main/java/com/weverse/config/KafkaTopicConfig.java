@@ -1,4 +1,4 @@
-package com.weverse.weverseorderevent.config;
+package com.weverse.config;
 
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.springframework.beans.factory.annotation.Value;
