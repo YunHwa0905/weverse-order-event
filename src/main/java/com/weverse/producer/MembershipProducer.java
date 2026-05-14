@@ -1,6 +1,6 @@
-package com.weverse.weverseorderevent.producer;
+package com.weverse.producer;
 
-import com.weverse.weverseorderevent.dto.MembershipEvent;
+import com.weverse.dto.MembershipEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
