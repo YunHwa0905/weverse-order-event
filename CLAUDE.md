@@ -1,4 +1,4 @@
-# weverse-order-event - CLAUDE.md
+``# weverse-order-event - CLAUDE.md
 
 이 문서는 Claude(Code) 에이전트가
 `weverse-order-event` 프로젝트에서 따라야 하는 개발 규칙과 컨벤션을 정의한다.
@@ -229,4 +229,4 @@ System.out.println 사용 금지.
 실제 Docker 환경과 설정값 일치 여부를 검증한다.
 
 ## 리팩터링 시
-기존 기능 동작을 유지해야 한다.
+기존 기능 동작을 유지해야 한다.``
