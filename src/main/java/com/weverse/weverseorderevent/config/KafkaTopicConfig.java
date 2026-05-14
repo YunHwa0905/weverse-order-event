@@ -31,6 +31,8 @@ public class KafkaTopicConfig {
     @Value("${kafka.topics.membership}")
     private String membershipTopic;
 
+    // docker-compose에서 KAFKA_AUTO_CREATE_TOPICS_ENABLE=false로 설정했기 때문에
+    // 애플리케이션 기동 시 AdminClient를 통해 토픽을 직접 생성해야 한다.
     @Bean
     public KafkaAdmin kafkaAdmin() {
         return new KafkaAdmin(Map.of(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers));
@@ -40,7 +42,7 @@ public class KafkaTopicConfig {
     public NewTopic orderTopic() {
         return TopicBuilder.name(orderTopic)
                 .partitions(2)
-                .replicas(1)
+                .replicas(1) // 단일 브로커 구성이므로 1 (운영 환경에서는 3 이상 권장)
                 .build();
     }
 
