@@ -1,4 +1,4 @@
-package com.weverse.weverseorderevent.dto;
+package com.weverse.dto;
 
 import lombok.Builder;
 import lombok.Getter;

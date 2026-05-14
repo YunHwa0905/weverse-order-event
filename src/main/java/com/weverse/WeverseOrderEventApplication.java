@@ -1,4 +1,4 @@
-package com.weverse.weverseorderevent;
+package com.weverse;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

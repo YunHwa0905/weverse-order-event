@@ -1,4 +1,4 @@
-package com.weverse.weverseorderevent.config;
+package com.weverse.config;
 
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
