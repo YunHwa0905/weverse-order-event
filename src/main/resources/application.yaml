@@ -21,18 +21,19 @@ spring:
     consumer:
       group-id: weverse-order-group
       auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
   data:
     redis:
       host: 172.23.44.210
       port: 6379
+
+kafka:
+  topics:
+    order: order-topic
+    order-dead-letter: order-dead-letter-topic
+    order-notification: order-notification-topic
+    claim: claim-topic
+    membership: membership-topic
 
 server:
   port: 8080
