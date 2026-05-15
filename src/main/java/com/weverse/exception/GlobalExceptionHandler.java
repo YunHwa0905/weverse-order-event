@@ -16,7 +16,8 @@ public class GlobalExceptionHandler {
             OrderNotFoundException.class,
             MemberNotFoundException.class,
             CouponNotFoundException.class,
-            StockNotFoundException.class
+            StockNotFoundException.class,
+            ProductNotFoundException.class
     })
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFoundException(BusinessException ex) {
@@ -27,7 +28,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             InsufficientStockException.class,
             InvalidCouponException.class,
-            InvalidOrderStatusException.class
+            InvalidOrderStatusException.class,
+            InsufficientMembershipException.class
     })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequestException(BusinessException ex) {

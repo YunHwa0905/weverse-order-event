@@ -2,15 +2,13 @@ package com.weverse.service;
 
 import com.weverse.dto.*;
 import com.weverse.entity.*;
-import com.weverse.exception.InvalidCouponException;
-import com.weverse.exception.InvalidOrderStatusException;
-import com.weverse.exception.MemberNotFoundException;
-import com.weverse.exception.OrderNotFoundException;
+import com.weverse.exception.*;
 import com.weverse.producer.ClaimProducer;
 import com.weverse.producer.OrderEventProducer;
 import com.weverse.repository.CouponRepository;
 import com.weverse.repository.MemberRepository;
 import com.weverse.repository.OrderRepository;
+import com.weverse.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,12 +22,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class OrderService {
 
-    // PREMIUM 회원에게 쿠폰 할인 이후 추가로 적용되는 고정 할인율(%)
-    private static final int PREMIUM_ADDITIONAL_DISCOUNT_RATE = 5;
-
     private final OrderRepository orderRepository;
     private final MemberRepository memberRepository;
     private final CouponRepository couponRepository;
+    private final ProductRepository productRepository;
     private final StockService stockService;
     private final OrderEventProducer orderEventProducer;
     private final ClaimProducer claimProducer;
@@ -39,9 +35,12 @@ public class OrderService {
         Member member = memberRepository.findById(request.getMemberId())
                 .orElseThrow(() -> new MemberNotFoundException(request.getMemberId()));
 
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new ProductNotFoundException(request.getProductId()));
+
         stockService.checkAvailability(request.getProductId(), request.getQuantity());
 
-        long originalPrice = request.getUnitPrice() * request.getQuantity();
+        long originalPrice = product.getPrice() * request.getQuantity();
         long discountedPrice = originalPrice;
 
         // 쿠폰 적용: 만료일 → 잔여 수량 → 사용 여부 순으로 검증한다.
@@ -49,11 +48,33 @@ public class OrderService {
             discountedPrice = applyCouponDiscount(request.getCouponCode(), discountedPrice);
         }
 
-        // PREMIUM 멤버십 추가 할인: 쿠폰 할인 이후 금액에 적용한다.
-        boolean isPremium = member.getMembershipGrade() == MembershipGrade.PREMIUM;
+        boolean isActivePremium = member.getMembershipGrade() == MembershipGrade.PREMIUM
+                && member.getSubscribeEndAt() != null
+                && member.getSubscribeEndAt().isAfter(LocalDateTime.now());
 
-        if (isPremium) {
-            discountedPrice = discountedPrice * (100 - PREMIUM_ADDITIONAL_DISCOUNT_RATE) / 100;
+        if (!isActivePremium && member.getMembershipGrade() == MembershipGrade.PREMIUM) {
+            log.warn("PREMIUM 구독 만료 - memberId: {}, 만료일: {}",
+                    member.getMemberId(), member.getSubscribeEndAt());
+        }
+
+        if (product.getRequiredGrade() == MembershipGrade.PREMIUM) {
+
+            // PREMIUM 멤버십 없으면 차단
+            if (!isActivePremium) {
+                throw new InsufficientMembershipException(
+                        "PREMIUM 멤버십이 필요한 상품입니다. productId: " + product.getProductId());
+            }
+
+            // 아티스트 멤버십 불일치 시 차단
+            if (!product.getArtistId().equals(member.getArtistId())) {
+                throw new InsufficientMembershipException(
+                        "해당 아티스트의 멤버십이 필요합니다. artistId: " + product.getArtistId());
+            }
+        }
+
+        // 상품별 PREMIUM 할인율 적용
+        if (isActivePremium && product.getPremiumDiscountRate() > 0) {
+            discountedPrice = discountedPrice * (100 - product.getPremiumDiscountRate()) / 100;
         }
 
         Order order = orderRepository.save(Order.builder()

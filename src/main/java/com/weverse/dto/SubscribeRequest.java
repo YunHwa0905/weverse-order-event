@@ -13,4 +13,6 @@ public class SubscribeRequest {
 
     @NotNull(message = "구독 등급을 입력해 주세요.")
     private MembershipGrade grade;
+
+    private String artistId;
 }
