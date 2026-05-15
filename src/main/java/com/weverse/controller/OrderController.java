@@ -1,9 +1,6 @@
 package com.weverse.controller;
 
-import com.weverse.dto.CreateOrderRequest;
-import com.weverse.dto.CreateOrderResponse;
-import com.weverse.dto.OrderDetailResponse;
-import com.weverse.dto.StockResponse;
+import com.weverse.dto.*;
 import com.weverse.service.OrderService;
 import com.weverse.service.StockService;
 import jakarta.validation.Valid;
@@ -33,5 +30,11 @@ public class OrderController {
     @GetMapping("/stock/{productId}")
     public StockResponse getStock(@PathVariable String productId) {
         return stockService.getStock(productId);
+    }
+
+    @PostMapping("/{orderId}/claim")
+    public CancelOrderResponse cancelOrder(@PathVariable Long orderId,
+                                           @RequestBody @Valid CancelOrderRequest request) {
+        return orderService.cancelOrder(orderId, request);
     }
 }

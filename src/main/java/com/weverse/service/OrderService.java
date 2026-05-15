@@ -1,13 +1,12 @@
 package com.weverse.service;
 
-import com.weverse.dto.CreateOrderRequest;
-import com.weverse.dto.CreateOrderResponse;
-import com.weverse.dto.OrderDetailResponse;
-import com.weverse.dto.OrderEvent;
+import com.weverse.dto.*;
 import com.weverse.entity.*;
 import com.weverse.exception.InvalidCouponException;
+import com.weverse.exception.InvalidOrderStatusException;
 import com.weverse.exception.MemberNotFoundException;
 import com.weverse.exception.OrderNotFoundException;
+import com.weverse.producer.ClaimProducer;
 import com.weverse.producer.OrderEventProducer;
 import com.weverse.repository.CouponRepository;
 import com.weverse.repository.MemberRepository;
@@ -33,6 +32,7 @@ public class OrderService {
     private final CouponRepository couponRepository;
     private final StockService stockService;
     private final OrderEventProducer orderEventProducer;
+    private final ClaimProducer claimProducer;
 
     @Transactional
     public CreateOrderResponse createOrder(CreateOrderRequest request) {
@@ -112,6 +112,31 @@ public class OrderService {
         order.updateStatus(OrderStatus.COMPLETED);
 
         log.info("주문 처리 완료 - orderId: {}, productId: {}, 차감 수량: {}", orderId, productId, quantity);
+    }
+
+    @Transactional
+    public CancelOrderResponse cancelOrder(Long orderId, CancelOrderRequest request) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException(orderId));
+
+        if (order.getStatus() != OrderStatus.COMPLETED) {
+            throw new InvalidOrderStatusException(orderId, order.getStatus());
+        }
+
+        order.updateStatus(OrderStatus.CANCELLED);
+
+        claimProducer.publish(ClaimEvent.builder()
+                .orderId(orderId)
+                .reason(request.getReason())
+                .build());
+
+        log.info("주문 취소 요청 완료 - orderId: {}, 사유: {}", orderId, request.getReason());
+
+        return CancelOrderResponse.builder()
+                .orderId(orderId)
+                .status(OrderStatus.CANCELLED)
+                .message("주문이 취소되었습니다.")
+                .build();
     }
 
     private long applyCouponDiscount(String couponCode, long price) {
