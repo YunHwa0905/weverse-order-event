@@ -46,6 +46,7 @@ public class MemberService {
                         .build());
 
         member.updateMembership(request.getGrade(), startAt, endAt);
+        member.updateArtistId(request.getArtistId());
         memberRepository.save(member);
 
         cacheMembership(request.getMemberId(), request.getGrade(), endAt);

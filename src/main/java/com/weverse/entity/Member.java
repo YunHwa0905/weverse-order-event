@@ -24,6 +24,8 @@ public class Member {
     @Column(nullable = false)
     private MembershipGrade membershipGrade;
 
+    private String artistId;
+
     private LocalDateTime subscribeStartAt;
 
     private LocalDateTime subscribeEndAt;
@@ -36,5 +38,9 @@ public class Member {
         this.membershipGrade = grade;
         this.subscribeStartAt = startAt;
         this.subscribeEndAt = endAt;
+    }
+
+    public void updateArtistId(String artistId) {
+        this.artistId = artistId;
     }
 }
